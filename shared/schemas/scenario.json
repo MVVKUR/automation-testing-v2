@@ -1,0 +1,206 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://automation-testing-e2e.local/schemas/scenario.json",
+  "title": "Scenario",
+  "description": "Schema for a test scenario containing multiple steps",
+  "type": "object",
+  "required": ["id", "projectId", "name", "createdAt", "updatedAt"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for the scenario"
+    },
+    "projectId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "ID of the project this scenario belongs to"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255,
+      "description": "Name of the scenario"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 2000,
+      "description": "Detailed description of what the scenario tests"
+    },
+    "naturalLanguageDescription": {
+      "type": "string",
+      "maxLength": 5000,
+      "description": "Natural language description used for AI-generated tests"
+    },
+    "priority": {
+      "type": "string",
+      "enum": ["critical", "high", "medium", "low"],
+      "default": "medium",
+      "description": "Priority level of the scenario"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "active", "disabled", "archived"],
+      "default": "draft",
+      "description": "Current status of the scenario"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 50
+      },
+      "maxItems": 20,
+      "uniqueItems": true,
+      "description": "Tags for categorizing the scenario"
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "$ref": "step.json"
+      },
+      "description": "Ordered list of steps in the scenario"
+    },
+    "preconditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["login", "navigate", "setup", "custom"],
+            "description": "Type of precondition"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the precondition"
+          },
+          "config": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Configuration for the precondition"
+          }
+        },
+        "required": ["type"]
+      },
+      "description": "Preconditions that must be met before scenario execution"
+    },
+    "settings": {
+      "type": "object",
+      "description": "Scenario-specific settings (override project settings)",
+      "properties": {
+        "browser": {
+          "type": "string",
+          "enum": ["chromium", "firefox", "webkit"],
+          "description": "Browser to use for this scenario"
+        },
+        "timeout": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 300000,
+          "description": "Timeout in milliseconds for this scenario"
+        },
+        "retryCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5,
+          "description": "Number of retries for this scenario"
+        },
+        "viewport": {
+          "type": "object",
+          "properties": {
+            "width": {
+              "type": "integer",
+              "minimum": 320,
+              "maximum": 3840
+            },
+            "height": {
+              "type": "integer",
+              "minimum": 240,
+              "maximum": 2160
+            }
+          },
+          "description": "Viewport dimensions for this scenario"
+        }
+      },
+      "additionalProperties": true
+    },
+    "dataVariants": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the data variant"
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Data values for this variant"
+          }
+        },
+        "required": ["name", "data"]
+      },
+      "description": "Data-driven test variants"
+    },
+    "generatedCode": {
+      "type": "string",
+      "description": "AI-generated test code"
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when the code was generated"
+    },
+    "lastRunResult": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["passed", "failed", "skipped", "error"]
+        },
+        "duration": {
+          "type": "integer",
+          "description": "Duration in milliseconds"
+        },
+        "errorMessage": {
+          "type": "string"
+        },
+        "runAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "description": "Result of the last test run"
+    },
+    "executionCount": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0,
+      "description": "Number of times this scenario has been executed"
+    },
+    "passRate": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Pass rate percentage"
+    },
+    "createdBy": {
+      "type": "string",
+      "format": "uuid",
+      "description": "ID of the user who created the scenario"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when the scenario was created"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when the scenario was last updated"
+    }
+  },
+  "additionalProperties": false
+}

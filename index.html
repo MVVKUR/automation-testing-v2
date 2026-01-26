@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoTest AI</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <link rel="stylesheet" href="styles/variables.css">
+    <link rel="stylesheet" href="styles/global.css">
+    <link rel="stylesheet" href="styles/layout.css">
+    <link rel="stylesheet" href="styles/components.css">
+</head>
+
+<body>
+
+    <div class="app-container">
+
+        <!-- NEW: Global Main Sidebar -->
+        <nav class="main-sidebar">
+            <div class="sidebar-header">
+                <img src="assets/logo.png" alt="AutoTest AI" class="app-logo">
+                <div class="app-info">
+                    <h3>AutoTest AI</h3>
+                    <span>v1.0.0</span>
+                </div>
+            </div>
+
+            <ul class="nav-links">
+                <li class="nav-item active" onclick="app.navigateTo('dashboard')">
+                    <i class="fa-solid fa-house"></i>
+                    <span>Home</span>
+                </li>
+                <li class="nav-item">
+                    <i class="fa-solid fa-folder"></i>
+                    <span>Projects</span>
+                </li>
+                <li class="nav-item">
+                    <i class="fa-solid fa-flask"></i>
+                    <span>Test Cases</span>
+                </li>
+                <li class="nav-item">
+                    <i class="fa-solid fa-play"></i>
+                    <span>Executions</span>
+                </li>
+                <li class="nav-item">
+                    <i class="fa-solid fa-robot"></i>
+                    <span>AI Agent</span>
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <div class="nav-item">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Settings</span>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <div class="content-area">
+
+            <!-- VIEW 1: DASHBOARD -->
+            <div id="view-dashboard" class="view active">
+                <div class="centered-layout">
+                    <h1 class="hero-title">Welcome to AutoTest AI</h1>
+                    <p class="hero-subtitle">Connect your project to start automating tests with AI.</p>
+
+                    <div class="integration-grid">
+                        <div class="card integration-card" onclick="app.navigateTo('loading', { source: 'github' })">
+                            <i class="fa-brands fa-github card-icon"></i>
+                            <h3>GitHub</h3>
+                            <p>Connect repositories</p>
+                        </div>
+                        <div class="card integration-card" onclick="app.navigateTo('loading', { source: 'gitlab' })">
+                            <i class="fa-brands fa-gitlab card-icon"></i>
+                            <h3>GitLab</h3>
+                            <p>Connect repositories</p>
+                        </div>
+                        <div class="card integration-card">
+                            <i class="fa-solid fa-file-zipper card-icon"></i>
+                            <h3>Upload Zip</h3>
+                            <p>Drag & drop project</p>
+                        </div>
+                        <div class="card integration-card">
+                            <i class="fa-solid fa-terminal card-icon"></i>
+                            <h3>Manual</h3>
+                            <p>Setup from scratch</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 2: LOADING -->
+            <div id="view-loading" class="view hidden">
+                <div class="centered-layout">
+                    <div class="spinner"></div>
+                    <h2 id="loading-text">Cloning Repository...</h2>
+                    <p id="loading-subtext" class="text-secondary">This may take a few seconds.</p>
+                </div>
+            </div>
+
+            <!-- VIEW 3: PROJECT DETAILS -->
+            <div id="view-project-details" class="view hidden">
+                <div class="max-w-container">
+                    <header class="view-header">
+                        <button class="icon-btn" onclick="app.navigateTo('dashboard')"><i
+                                class="fa-solid fa-arrow-left"></i></button>
+                        <h2>Project Setup</h2>
+                    </header>
+
+                    <div class="success-banner">
+                        <div class="success-icon"><i class="fa-solid fa-check"></i></div>
+                        <div>
+                            <h3>Cloning Completed</h3>
+                            <p>Project <strong>shop-frontend-v2</strong> (Branch: main) is ready.</p>
+                        </div>
+                    </div>
+
+                    <h3 class="section-title">Select Testing Mode</h3>
+                    <div class="selection-grid">
+                        <div class="card selection-card" onclick="app.navigateTo('ai-setup')">
+                            <div class="card-badge">Recommended</div>
+                            <img src="assets/logo.png" alt="Logo" class="brand-logo-icon">
+                            <div class="card-content">
+                                <h3>Automation Testing</h3>
+                                <p>Generate Cypress scripts automatically using AI Agents.</p>
+                            </div>
+                            <i class="fa-solid fa-chevron-right arrow-icon"></i>
+                        </div>
+                        <div class="card selection-card">
+                            <i class="fa-solid fa-hand-pointer card-icon-sm"></i>
+                            <div class="card-content">
+                                <h3>Manual Testing</h3>
+                                <p>Create manual test scripts and execute runbooks.</p>
+                            </div>
+                            <i class="fa-solid fa-chevron-right arrow-icon"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 4: AI STRATEGY -->
+            <div id="view-ai-setup" class="view hidden">
+                <div class="max-w-container">
+                    <header class="view-header">
+                        <button class="icon-btn" onclick="app.navigateTo('project-details')"><i
+                                class="fa-solid fa-arrow-left"></i></button>
+                        <h2>AI Agent Configuration</h2>
+                    </header>
+
+                    <h3 class="section-title">How should we generate test cases?</h3>
+
+                    <div class="strategy-list">
+                        <div class="card strategy-item" onclick="app.generateTests('auto')">
+                            <div class="radio-indicator"></div>
+                            <div class="strategy-info">
+                                <h3>Auto-Analyze Project</h3>
+                                <p>AI scans your codebase to identify critical flows and generate tests.</p>
+                            </div>
+                        </div>
+
+                        <div class="card strategy-item">
+                            <div class="radio-indicator"></div>
+                            <div class="strategy-info">
+                                <h3>From Requirements</h3>
+                                <p>Paste user stories or requirements documents.</p>
+                            </div>
+                        </div>
+
+                        <div class="card strategy-item">
+                            <div class="radio-indicator"></div>
+                            <div class="strategy-info">
+                                <h3>Connect Jira</h3>
+                                <p>Fetch tickets from Jira Board to create acceptance tests.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 5: TEST LIST -->
+            <div id="view-test-list" class="view hidden">
+                <div class="max-w-container">
+                    <header class="view-header">
+                        <button class="icon-btn" onclick="app.navigateTo('ai-setup')"><i
+                                class="fa-solid fa-arrow-left"></i></button>
+                        <h2>Generated Test Cases</h2>
+                        <button class="btn btn-primary" onclick="alert('Running all tests...')"><i
+                                class="fa-solid fa-play"></i> Run All</button>
+                    </header>
+
+                    <div class="test-list-container">
+                        <div class="card test-item" onclick="app.loadScenario('Verify User Login')">
+                            <div class="status-dot success"></div>
+                            <div class="test-info">
+                                <h4>Verify User Login</h4>
+                                <p>TC-001 • Critical • Automated</p>
+                            </div>
+                            <button class="btn btn-small btn-secondary">Edit</button>
+                        </div>
+
+                        <div class="card test-item" onclick="app.loadScenario('Guest Checkout Flow')">
+                            <div class="status-dot warning"></div>
+                            <div class="test-info">
+                                <h4>Guest Checkout Flow</h4>
+                                <p>TC-002 • High • Automated</p>
+                            </div>
+                            <button class="btn btn-small btn-secondary">Edit</button>
+                        </div>
+                        <div class="card test-item">
+                            <div class="status-dot"></div>
+                            <div class="test-info">
+                                <h4>Profile Update</h4>
+                                <p>TC-003 • Medium • Automated</p>
+                            </div>
+                            <button class="btn btn-small btn-secondary">Edit</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 6: SCENARIO BUILDER -->
+            <div id="view-scenario-builder" class="view hidden full-height-view">
+                <!-- Top Header -->
+                <header class="app-header">
+                    <div class="header-left">
+                        <button class="icon-btn back-btn" onclick="app.navigateTo('test-list')"><i
+                                class="fa-solid fa-arrow-left"></i></button>
+                        <div class="breadcrumb">
+                            <h1 class="scenario-title">Scenario Name</h1>
+                            <span class="meta-info">Created: 20 Sep 2024 · Assigned to: You · Selected Env: Chrome
+                                v114</span>
+                        </div>
+                    </div>
+                    <div class="header-right">
+                        <button class="btn btn-text">Discard Changes</button>
+                        <button class="btn btn-secondary">Trial Run</button>
+                        <button class="btn btn-primary">Save Scenario</button>
+                    </div>
+                </header>
+
+                <div class="app-body">
+
+                    <!-- Left Sidebar: Steps -->
+                    <aside class="sidebar-steps">
+                        <div class="panel-header">
+                            <h2>Steps</h2>
+                            <div class="actions">
+                                <button class="icon-btn small"><i class="fa-solid fa-download"></i></button>
+                                <button class="btn btn-small btn-outline"><i class="fa-solid fa-plus"></i> Add</button>
+                            </div>
+                        </div>
+
+                        <div class="steps-list" id="stepsList">
+                            <!-- Step Item: Group -->
+                            <div class="step-item group-header">
+                                <span class="step-number">S1</span>
+                                <span class="step-label">Open Application</span>
+                            </div>
+
+                            <!-- Step Item: Leaf -->
+                            <div class="step-item sub-step">
+                                <div class="connector-line"></div>
+                                <i class="fa-solid fa-power-off step-icon"></i>
+                                <span class="step-label">Launch Browser</span>
+                            </div>
+
+                            <!-- Step Item: Active -->
+                            <div class="step-item sub-step active">
+                                <div class="connector-line"></div>
+                                <i class="fa-solid fa-link step-icon"></i>
+                                <span class="step-label">Navigate to URL</span>
+                            </div>
+
+                            <div class="step-item group-header">
+                                <span class="step-number">S2</span>
+                                <span class="step-label">Login Flow</span>
+                            </div>
+                        </div>
+                    </aside>
+
+                    <!-- Middle Panel: Configuration -->
+                    <main class="main-config">
+                        <div class="config-header">
+                            <h2>Navigate to URL</h2>
+                            <span class="subtitle">Enter the target URL for the test session</span>
+                        </div>
+
+                        <div class="config-content">
+                            <!-- Helper: Action Card -->
+                            <div class="card config-card">
+                                <div class="card-header">
+                                    <h3>Action Settings</h3>
+                                    <a href="#" class="link-action">Change Action</a>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-group">
+                                        <label class="form-label">URL</label>
+                                        <input type="text" class="form-input" value="https://example.com/login">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Timeout (ms)</label>
+                                        <input type="number" class="form-input" value="10000">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Helper: Verification -->
+                            <div class="card verification-card">
+                                <div class="tabs">
+                                    <button class="tab-btn active">Verification</button>
+                                    <button class="tab-btn">Post Action Settings</button>
+                                </div>
+                                <div class="tab-content">
+                                    <div class="rule-builder">
+                                        <div class="rule-row">
+                                            <span class="radio-group">
+                                                <label><input type="radio" name="logic" checked> And</label>
+                                                <label><input type="radio" name="logic"> Or</label>
+                                            </span>
+                                            <div class="rule-actions">
+                                                <a href="#">Add Rule</a>
+                                                <a href="#">Add Group</a>
+                                            </div>
+                                        </div>
+                                        <div class="verification-item">
+                                            <label class="item-label">Verify Page Title</label>
+                                            <div class="input-group">
+                                                <select class="form-select">
+                                                    <option>Equals</option>
+                                                </select>
+                                                <input type="text" class="form-input" placeholder="Value">
+                                                <button class="btn-text danger">Remove</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-actions">
+                                        <button class="btn btn-primary small">Update</button>
+                                        <button class="btn btn-text small">Reset</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Bottom Sticky Actions -->
+                            <div class="floating-actions">
+                                <div class="action-category">
+                                    <span>+ Actions</span>
+                                    <div class="chip-list">
+                                        <button class="chip">Click</button>
+                                        <button class="chip">Type</button>
+                                        <button class="chip">Wait</button>
+                                    </div>
+                                </div>
+                                <div class="action-category">
+                                    <span>+ Verifications</span>
+                                    <div class="chip-list">
+                                        <button class="chip">Visible</button>
+                                        <button class="chip">Text</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+
+                    <!-- Right Panel: Browser Preview -->
+                    <aside class="sidebar-preview">
+                        <div class="panel-header">
+                            <span>Selected Device: <strong>Desktop Chrome 1080p</strong></span>
+                            <a href="#" class="link-action">Change</a>
+                        </div>
+                        <div class="preview-container">
+                            <div class="browser-mockup">
+                                <div class="browser-address-bar">
+                                    <div class="ba-dots">
+                                        <span class="dot red"></span><span class="dot yellow"></span><span
+                                            class="dot green"></span>
+                                    </div>
+                                    <div class="ba-input">
+                                        <i class="fa-solid fa-lock"></i>
+                                        <span>https://example.com/login</span>
+                                    </div>
+                                </div>
+                                <div class="browser-viewport">
+                                    <div class="website-placeholder">
+                                        <div class="ph-nav"></div>
+                                        <div class="ph-hero">
+                                            <div class="ph-text"></div>
+                                            <div class="ph-img"></div>
+                                        </div>
+                                        <div class="ph-grid">
+                                            <div class="ph-card"></div>
+                                            <div class="ph-card"></div>
+                                            <div class="ph-card"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="preview-toolbar">
+                                <button class="tool-btn" title="Inspect"><i class="fa-solid fa-crosshairs"></i></button>
+                                <button class="tool-btn" title="Screenshot"><i class="fa-solid fa-camera"></i></button>
+                                <button class="tool-btn" title="Record"><i class="fa-solid fa-video"></i></button>
+                                <button class="tool-btn" title="Reset View"><i
+                                        class="fa-solid fa-rotate-left"></i></button>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+            </div>
+
+        </div> <!-- End Content Area -->
+    </div> <!-- End App Container -->
+
+    <script src="scripts/main.js"></script>
+</body>
+
+</html>

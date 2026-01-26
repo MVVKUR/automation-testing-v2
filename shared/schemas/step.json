@@ -1,0 +1,282 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://automation-testing-e2e.local/schemas/step.json",
+  "title": "Step",
+  "description": "Schema for a single test step within a scenario",
+  "type": "object",
+  "required": ["id", "type", "order"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for the step"
+    },
+    "scenarioId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "ID of the scenario this step belongs to"
+    },
+    "order": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Order of the step within the scenario"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "navigate",
+        "click",
+        "fill",
+        "select",
+        "check",
+        "uncheck",
+        "hover",
+        "scroll",
+        "wait",
+        "screenshot",
+        "assert",
+        "assertText",
+        "assertVisible",
+        "assertHidden",
+        "assertValue",
+        "assertUrl",
+        "assertTitle",
+        "keyboard",
+        "upload",
+        "download",
+        "iframe",
+        "popup",
+        "dialog",
+        "api",
+        "script",
+        "custom"
+      ],
+      "description": "Type of action to perform"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 500,
+      "description": "Human-readable description of the step"
+    },
+    "selector": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["css", "xpath", "text", "role", "testId", "label", "placeholder", "altText"],
+          "description": "Selector strategy"
+        },
+        "value": {
+          "type": "string",
+          "description": "Selector value"
+        },
+        "fallback": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              }
+            }
+          },
+          "description": "Fallback selectors if primary fails"
+        }
+      },
+      "description": "Element selector configuration"
+    },
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "description": "URL for navigation steps"
+        },
+        "value": {
+          "type": "string",
+          "description": "Value to input or compare"
+        },
+        "text": {
+          "type": "string",
+          "description": "Text content for assertions or inputs"
+        },
+        "key": {
+          "type": "string",
+          "description": "Keyboard key to press"
+        },
+        "modifiers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["Shift", "Control", "Alt", "Meta"]
+          },
+          "description": "Keyboard modifiers"
+        },
+        "position": {
+          "type": "object",
+          "properties": {
+            "x": { "type": "number" },
+            "y": { "type": "number" }
+          },
+          "description": "Click position"
+        },
+        "button": {
+          "type": "string",
+          "enum": ["left", "right", "middle"],
+          "default": "left",
+          "description": "Mouse button"
+        },
+        "clickCount": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3,
+          "default": 1,
+          "description": "Number of clicks"
+        },
+        "filePath": {
+          "type": "string",
+          "description": "File path for upload/download"
+        },
+        "timeout": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Step-specific timeout in milliseconds"
+        },
+        "waitTime": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Time to wait in milliseconds"
+        },
+        "scrollDirection": {
+          "type": "string",
+          "enum": ["up", "down", "left", "right"],
+          "description": "Direction to scroll"
+        },
+        "scrollAmount": {
+          "type": "integer",
+          "description": "Amount to scroll in pixels"
+        },
+        "assertion": {
+          "type": "object",
+          "properties": {
+            "operator": {
+              "type": "string",
+              "enum": ["equals", "contains", "matches", "greaterThan", "lessThan", "exists", "notExists"],
+              "description": "Comparison operator"
+            },
+            "expected": {
+              "type": ["string", "number", "boolean"],
+              "description": "Expected value"
+            },
+            "attribute": {
+              "type": "string",
+              "description": "Element attribute to check"
+            }
+          },
+          "description": "Assertion configuration"
+        },
+        "apiRequest": {
+          "type": "object",
+          "properties": {
+            "method": {
+              "type": "string",
+              "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"]
+            },
+            "url": {
+              "type": "string"
+            },
+            "headers": {
+              "type": "object",
+              "additionalProperties": { "type": "string" }
+            },
+            "body": {
+              "type": ["object", "string"]
+            }
+          },
+          "description": "API request configuration"
+        },
+        "script": {
+          "type": "string",
+          "description": "Custom JavaScript to execute"
+        }
+      },
+      "additionalProperties": true,
+      "description": "Step-specific parameters"
+    },
+    "dataBinding": {
+      "type": "object",
+      "properties": {
+        "variable": {
+          "type": "string",
+          "description": "Variable name to bind from data variants"
+        },
+        "field": {
+          "type": "string",
+          "description": "Field in step to bind the variable to"
+        }
+      },
+      "description": "Data binding for data-driven tests"
+    },
+    "conditions": {
+      "type": "object",
+      "properties": {
+        "skipIf": {
+          "type": "string",
+          "description": "Expression to evaluate - skip step if true"
+        },
+        "executeIf": {
+          "type": "string",
+          "description": "Expression to evaluate - execute only if true"
+        }
+      },
+      "description": "Conditional execution settings"
+    },
+    "errorHandling": {
+      "type": "object",
+      "properties": {
+        "continueOnError": {
+          "type": "boolean",
+          "default": false,
+          "description": "Continue scenario execution on step failure"
+        },
+        "retryCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5,
+          "default": 0,
+          "description": "Number of retries for this step"
+        },
+        "screenshotOnError": {
+          "type": "boolean",
+          "default": true,
+          "description": "Capture screenshot on error"
+        }
+      },
+      "description": "Error handling configuration"
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether the step is enabled"
+    },
+    "comment": {
+      "type": "string",
+      "maxLength": 500,
+      "description": "Optional comment for the step"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when the step was created"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when the step was last updated"
+    }
+  },
+  "additionalProperties": false
+}

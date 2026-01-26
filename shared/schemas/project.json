@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://automation-testing-e2e.local/schemas/project.json",
+  "title": "Project",
+  "description": "Schema for an automation testing project",
+  "type": "object",
+  "required": ["id", "name", "createdAt", "updatedAt"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for the project"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255,
+      "description": "Name of the project"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 2000,
+      "description": "Detailed description of the project"
+    },
+    "baseUrl": {
+      "type": "string",
+      "format": "uri",
+      "description": "Base URL of the application under test"
+    },
+    "settings": {
+      "type": "object",
+      "description": "Project-specific settings",
+      "properties": {
+        "defaultBrowser": {
+          "type": "string",
+          "enum": ["chromium", "firefox", "webkit"],
+          "default": "chromium",
+          "description": "Default browser for test execution"
+        },
+        "defaultTimeout": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 300000,
+          "default": 30000,
+          "description": "Default timeout in milliseconds"
+        },
+        "screenshotOnFailure": {
+          "type": "boolean",
+          "default": true,
+          "description": "Capture screenshots on test failure"
+        },
+        "videoRecording": {
+          "type": "boolean",
+          "default": false,
+          "description": "Record video during test execution"
+        },
+        "retryCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5,
+          "default": 1,
+          "description": "Number of retries for failed tests"
+        },
+        "parallelWorkers": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10,
+          "default": 2,
+          "description": "Number of parallel test workers"
+        },
+        "testFramework": {
+          "type": "string",
+          "enum": ["playwright", "cypress"],
+          "default": "playwright",
+          "description": "Test framework to use"
+        }
+      },
+      "additionalProperties": true
+    },
+    "environmentVariables": {
+      "type": "object",
+      "description": "Environment variables for the project",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 50
+      },
+      "maxItems": 20,
+      "uniqueItems": true,
+      "description": "Tags for categorizing the project"
+    },
+    "ownerId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "ID of the project owner"
+    },
+    "teamId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "ID of the team this project belongs to"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["active", "archived", "deleted"],
+      "default": "active",
+      "description": "Current status of the project"
+    },
+    "scenarioCount": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0,
+      "description": "Number of scenarios in the project"
+    },
+    "lastRunAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp of the last test run"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when the project was created"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when the project was last updated"
+    }
+  },
+  "additionalProperties": false
+}

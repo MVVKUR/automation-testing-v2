@@ -1,0 +1,139 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 1.0.0)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build-tauri:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: 'macos-latest'
+            args: '--target aarch64-apple-darwin'
+            target: aarch64-apple-darwin
+          - platform: 'macos-latest'
+            args: '--target x86_64-apple-darwin'
+            target: x86_64-apple-darwin
+          - platform: 'ubuntu-22.04'
+            args: ''
+            target: x86_64-unknown-linux-gnu
+          - platform: 'windows-latest'
+            args: ''
+            target: x86_64-pc-windows-msvc
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: frontend/src-tauri
+
+      - name: Install Linux dependencies
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          # macOS code signing
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          # Windows code signing
+          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        with:
+          projectPath: frontend
+          tagName: v__VERSION__
+          releaseName: 'AutoTest AI v__VERSION__'
+          releaseBody: |
+            ## AutoTest AI v__VERSION__
+
+            ### Downloads
+            - **macOS**: Download the `.dmg` file for your architecture (Apple Silicon or Intel)
+            - **Windows**: Download the `.exe` installer
+            - **Linux**: Download the `.AppImage` or `.deb` package
+
+            ### What's New
+            See the [CHANGELOG](https://github.com/your-org/autotest-ai/blob/main/CHANGELOG.md) for details.
+
+            ### Installation
+            Please refer to the [Installation Guide](https://github.com/your-org/autotest-ai#installation) for detailed instructions.
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.args }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: autotest-ai-${{ matrix.target }}
+          path: |
+            frontend/src-tauri/target/*/release/bundle/**/*.dmg
+            frontend/src-tauri/target/*/release/bundle/**/*.app
+            frontend/src-tauri/target/*/release/bundle/**/*.exe
+            frontend/src-tauri/target/*/release/bundle/**/*.msi
+            frontend/src-tauri/target/*/release/bundle/**/*.AppImage
+            frontend/src-tauri/target/*/release/bundle/**/*.deb
+            frontend/src-tauri/target/*/release/bundle/**/*.rpm
+          retention-days: 7
+
+  create-universal-macos:
+    needs: build-tauri
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download macOS ARM64 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: autotest-ai-aarch64-apple-darwin
+          path: arm64
+
+      - name: Download macOS x64 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: autotest-ai-x86_64-apple-darwin
+          path: x64
+
+      - name: Create universal binary
+        run: |
+          echo "Universal binary creation would go here"
+          echo "This requires additional tooling setup"
