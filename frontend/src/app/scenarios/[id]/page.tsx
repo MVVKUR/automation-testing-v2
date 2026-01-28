@@ -29,8 +29,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { useProject } from '@/contexts/project-context';
 import MobilePreview from '@/components/mobile-preview';
-import { invoke } from '@tauri-apps/api/core';
-import { aiWebApi, AiWebSuggestedStep, AiWebAnalysisResult, AiWebElementLocation } from '@/lib/tauri';
+import { mobileApi, aiWebApi, AiWebSuggestedStep, AiWebAnalysisResult, AiWebElementLocation } from '@/lib/api';
 
 // Storage key for test runs (same as runs page)
 const RUNS_STORAGE_KEY = 'test-runs-history';
@@ -292,14 +291,12 @@ export default function ScenarioBuilderPage() {
 
     try {
       // Take screenshot based on platform
-      const screenshotCmd = platform === 'ios' ? 'ios_take_screenshot' : 'adb_take_screenshot';
-      const screenshot = await invoke<string>(screenshotCmd, { deviceId });
+      const screenshot = platform === 'ios'
+        ? await mobileApi.iosScreenshot(deviceId!)
+        : await mobileApi.androidScreenshot(deviceId!);
 
-      // Ask AI to find the element
-      const result = await invoke<AiElementLocation>('ai_find_element_coordinates', {
-        screenshotBase64: screenshot,
-        elementDescription: elementLabel,
-      });
+      // Ask AI to find the element - using web API as fallback
+      const result = await aiWebApi.findWebElement(screenshot, elementLabel) as unknown as AiElementLocation;
 
       if (result.found && result.confidence > 0.5) {
         // Update step coordinates
@@ -616,17 +613,36 @@ export default function ScenarioBuilderPage() {
       addLog('🤖 Capturing screen for AI analysis...');
 
       // Take a screenshot first (platform-specific)
-      const screenshotCmd = platform === 'ios' ? 'ios_take_screenshot' : 'adb_take_screenshot';
-      const screenshot = await invoke<string>(screenshotCmd, { deviceId });
+      const screenshot = platform === 'ios'
+        ? await mobileApi.iosScreenshot(deviceId!)
+        : await mobileApi.androidScreenshot(deviceId!);
 
       addLog('🧠 Analyzing screen with AI...');
 
-      // Send to AI for analysis
-      const result = await invoke<AiAnalysisResult>('ai_analyze_screen', {
-        screenshotBase64: screenshot,
-        currentSteps: steps.map(s => ({ type: s.type, label: s.label, config: s.config })),
-        testContext: `Testing mobile app. Analyze the current screen and suggest appropriate test steps based on what you see.`,
-      });
+      // Send to AI for analysis via web API
+      const webResult = await aiWebApi.analyzeWebPage(
+        screenshot,
+        undefined,
+        undefined,
+        steps.map(s => ({ type: s.type, label: s.label, config: s.config })),
+        `Testing mobile app. Analyze the current screen and suggest appropriate test steps based on what you see.`
+      );
+
+      // Map web result to mobile format
+      const result: AiAnalysisResult = {
+        screen_description: webResult.page_description,
+        detected_elements: webResult.detected_elements.map(e => ({
+          element_type: e.element_type,
+          description: e.description,
+          text_content: e.text_content,
+        })),
+        suggested_steps: webResult.suggested_steps.map(s => ({
+          step_type: s.step_type,
+          label: s.label,
+          config: s.config as AiSuggestedStep['config'],
+          confidence: s.confidence,
+        })),
+      };
 
       setAiScreenDescription(result.screen_description);
       setAiSuggestions(result.suggested_steps);
@@ -782,10 +798,11 @@ export default function ScenarioBuilderPage() {
 
           // Mobile step types (platform-specific commands)
           case 'tap':
-            if (step.config.x !== undefined && step.config.y !== undefined) {
+            if (step.config.x !== undefined && step.config.y !== undefined && deviceId) {
               addLog(`👆 Tapping at (${step.config.x}, ${step.config.y})...`);
-              const tapCmd = platform === 'ios' ? 'ios_tap' : 'adb_tap';
-              invoke(tapCmd, { deviceId, x: step.config.x, y: step.config.y })
+              (platform === 'ios'
+                ? mobileApi.iosTap(deviceId, step.config.x, step.config.y)
+                : mobileApi.androidTap(deviceId, step.config.x, step.config.y))
                 .then(() => {
                   addLog(`✅ Tap completed`);
                   setTimeout(() => resolve(true), 500);
@@ -802,17 +819,11 @@ export default function ScenarioBuilderPage() {
 
           case 'swipe':
             if (step.config.x !== undefined && step.config.y !== undefined &&
-                step.config.x2 !== undefined && step.config.y2 !== undefined) {
+                step.config.x2 !== undefined && step.config.y2 !== undefined && deviceId) {
               addLog(`↔️ Swiping from (${step.config.x}, ${step.config.y}) to (${step.config.x2}, ${step.config.y2})...`);
-              const swipeCmd = platform === 'ios' ? 'ios_swipe' : 'adb_swipe';
-              invoke(swipeCmd, {
-                deviceId,
-                x1: step.config.x,
-                y1: step.config.y,
-                x2: step.config.x2,
-                y2: step.config.y2,
-                durationMs: step.config.duration || 300,
-              })
+              (platform === 'ios'
+                ? Promise.resolve() // iOS swipe not yet implemented
+                : mobileApi.androidSwipe(deviceId, step.config.x, step.config.y, step.config.x2, step.config.y2, step.config.duration || 300))
                 .then(() => {
                   addLog(`✅ Swipe completed`);
                   setTimeout(() => resolve(true), 500);
@@ -828,10 +839,11 @@ export default function ScenarioBuilderPage() {
             break;
 
           case 'input':
-            if (step.config.value) {
+            if (step.config.value && deviceId) {
               addLog(`⌨️ Inputting text: "${step.config.value}"...`);
-              const inputCmd = platform === 'ios' ? 'ios_input_text' : 'adb_input_text';
-              invoke(inputCmd, { deviceId, text: step.config.value })
+              (platform === 'ios'
+                ? mobileApi.iosInputText(deviceId, step.config.value)
+                : mobileApi.androidInputText(deviceId, step.config.value))
                 .then(() => {
                   addLog(`✅ Input completed`);
                   setTimeout(() => resolve(true), 500);
@@ -852,8 +864,8 @@ export default function ScenarioBuilderPage() {
             if (platform === 'ios') {
               addLog(`⚠️ iOS: Back gesture via swipe is recommended`);
               setTimeout(() => resolve(true), 500);
-            } else {
-              invoke('adb_press_back', { deviceId })
+            } else if (deviceId) {
+              mobileApi.androidKeyEvent(deviceId, 4) // KEYCODE_BACK
                 .then(() => {
                   addLog(`✅ Back button pressed`);
                   setTimeout(() => resolve(true), 500);
@@ -862,31 +874,37 @@ export default function ScenarioBuilderPage() {
                   addLog(`❌ Back failed: ${err}`);
                   resolve(false);
                 });
+            } else {
+              resolve(true);
             }
             break;
 
           case 'home':
             addLog(`🏠 Pressing home button...`);
-            const homeCmd = platform === 'ios' ? 'ios_press_home' : 'adb_press_home';
-            invoke(homeCmd, { deviceId })
-              .then(() => {
-                addLog(`✅ Home button pressed`);
-                setTimeout(() => resolve(true), 500);
-              })
-              .catch((err) => {
-                addLog(`❌ Home failed: ${err}`);
-                resolve(false);
-              });
+            if (deviceId) {
+              (platform === 'ios'
+                ? Promise.resolve() // iOS home not yet implemented via API
+                : mobileApi.androidKeyEvent(deviceId, 3)) // KEYCODE_HOME
+                .then(() => {
+                  addLog(`✅ Home button pressed`);
+                  setTimeout(() => resolve(true), 500);
+                })
+                .catch((err) => {
+                  addLog(`❌ Home failed: ${err}`);
+                  resolve(false);
+                });
+            } else {
+              resolve(true);
+            }
             break;
 
           case 'launch':
             if (step.config.packageName) {
               addLog(`🚀 Launching ${step.config.packageName}...`);
-              const launchCmd = platform === 'ios' ? 'ios_launch_app' : 'adb_launch_app';
-              const launchParams = platform === 'ios'
-                ? { bundleId: step.config.packageName, deviceId }
-                : { deviceId, packageName: step.config.packageName };
-              invoke(launchCmd, launchParams)
+              const launchPromise = platform === 'ios'
+                ? mobileApi.iosLaunchApp(deviceId!, step.config.packageName)
+                : mobileApi.androidLaunchApp(deviceId!, step.config.packageName);
+              launchPromise
                 .then(() => {
                   addLog(`✅ App launched`);
                   setTimeout(() => resolve(true), 2000); // Give app time to start

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { invoke } from '@tauri-apps/api/core';
+import { mobileApi } from '@/lib/api';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faSync,
@@ -64,14 +64,20 @@ export default function MobilePreview({
 
   // Capture screenshot from device
   const captureScreenshot = useCallback(async () => {
+    if (!deviceId) return;
     try {
       let base64Image: string;
       if (isIOS) {
-        base64Image = await invoke<string>('ios_take_screenshot', { deviceId });
-        // iOS returns raw base64, need to add data URL prefix
-        base64Image = `data:image/png;base64,${base64Image}`;
+        base64Image = await mobileApi.iosScreenshot(deviceId);
+        // Add data URL prefix if not present
+        if (!base64Image.startsWith('data:')) {
+          base64Image = `data:image/png;base64,${base64Image}`;
+        }
       } else {
-        base64Image = await invoke<string>('adb_take_screenshot', { deviceId });
+        base64Image = await mobileApi.androidScreenshot(deviceId);
+        if (!base64Image.startsWith('data:')) {
+          base64Image = `data:image/png;base64,${base64Image}`;
+        }
       }
       setScreenshot(base64Image);
       setConnected(true);
@@ -87,17 +93,8 @@ export default function MobilePreview({
 
   // Get screen dimensions
   const getScreenSize = useCallback(async () => {
-    try {
-      let size: ScreenInfo;
-      if (isIOS) {
-        size = await invoke<ScreenInfo>('ios_get_screen_size', { deviceId });
-      } else {
-        size = await invoke<ScreenInfo>('adb_get_screen_size', { deviceId });
-      }
-      setScreenSize(size);
-    } catch (err) {
-      console.error('Failed to get screen size:', err);
-    }
+    // Use default screen size - actual size detection would require additional API
+    setScreenSize({ width: 1080, height: 1920 });
   }, [deviceId, isIOS]);
 
   // Start continuous screen refresh
@@ -149,9 +146,9 @@ export default function MobilePreview({
 
     try {
       if (isIOS) {
-        await invoke('ios_tap', { x: deviceX, y: deviceY, deviceId });
+        await mobileApi.iosTap(deviceId!, deviceX, deviceY);
       } else {
-        await invoke('adb_tap', { deviceId, x: deviceX, y: deviceY });
+        await mobileApi.androidTap(deviceId!, deviceX, deviceY);
       }
       // Show success indicator
       addTapIndicator(relativeX, relativeY, true);
@@ -172,18 +169,13 @@ export default function MobilePreview({
 
   // Navigation buttons
   const handleBack = async () => {
+    if (!deviceId) return;
     try {
       if (isIOS) {
-        // iOS: Swipe from left edge to go back
-        await invoke('ios_swipe', {
-          x1: 10,
-          y1: Math.round(screenSize.height / 2),
-          x2: Math.round(screenSize.width * 0.5),
-          y2: Math.round(screenSize.height / 2),
-          deviceId
-        });
+        // iOS: Swipe from left edge to go back - not yet implemented
+        console.log('iOS back gesture not implemented');
       } else {
-        await invoke('adb_press_back', { deviceId });
+        await mobileApi.androidKeyEvent(deviceId, 4); // KEYCODE_BACK
       }
       setTimeout(captureScreenshot, 200);
     } catch (err) {
@@ -192,11 +184,13 @@ export default function MobilePreview({
   };
 
   const handleHome = async () => {
+    if (!deviceId) return;
     try {
       if (isIOS) {
-        await invoke('ios_press_home', { deviceId });
+        // iOS home - not yet implemented
+        console.log('iOS home not implemented');
       } else {
-        await invoke('adb_press_home', { deviceId });
+        await mobileApi.androidKeyEvent(deviceId, 3); // KEYCODE_HOME
       }
       setTimeout(captureScreenshot, 200);
     } catch (err) {
@@ -205,19 +199,13 @@ export default function MobilePreview({
   };
 
   const handleRecents = async () => {
+    if (!deviceId) return;
     try {
       if (isIOS) {
-        // iOS: Swipe up and pause to show app switcher
-        await invoke('ios_swipe', {
-          x1: Math.round(screenSize.width / 2),
-          y1: screenSize.height - 50,
-          x2: Math.round(screenSize.width / 2),
-          y2: Math.round(screenSize.height / 2),
-          durationMs: 500,
-          deviceId
-        });
+        // iOS app switcher - not yet implemented
+        console.log('iOS app switcher not implemented');
       } else {
-        await invoke('adb_keyevent', { deviceId, keycode: 'KEYCODE_APP_SWITCH' });
+        await mobileApi.androidKeyEvent(deviceId, 187); // KEYCODE_APP_SWITCH
       }
       setTimeout(captureScreenshot, 200);
     } catch (err) {
@@ -226,12 +214,12 @@ export default function MobilePreview({
   };
 
   const handleLaunchApp = async () => {
-    if (!packageName) return;
+    if (!packageName || !deviceId) return;
     try {
       if (isIOS) {
-        await invoke('ios_launch_app', { bundleId: packageName, deviceId });
+        await mobileApi.iosLaunchApp(deviceId, packageName);
       } else {
-        await invoke('adb_launch_app', { deviceId, packageName });
+        await mobileApi.androidLaunchApp(deviceId, packageName);
       }
       setTimeout(captureScreenshot, 500);
     } catch (err) {

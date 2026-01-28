@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGithub, faGitlab, faAndroid, faApple } from '@fortawesome/free-brands-svg-icons';
 import { faFileZipper, faCodeBranch, faGlobe, faRocket, faFlask, faHistory, faArrowRight, faMobileScreen, faLaptop, faSync } from '@fortawesome/free-solid-svg-icons';
 import { useProject, Project } from '@/contexts/project-context';
-import { invoke } from '@tauri-apps/api/core';
+import { mobileApi, projectApi } from '@/lib/api';
 
 interface InstalledApp {
   package_name: string;
@@ -92,8 +92,9 @@ export default function HomePage() {
   const fetchInstalledApps = async () => {
     setLoadingApps(true);
     try {
-      const apps = await invoke<InstalledApp[]>('adb_list_packages', { thirdPartyOnly: true });
-      setInstalledApps(apps);
+      const devices = await mobileApi.listAndroidDevices();
+      // For now, just show empty apps list - full implementation would require additional API
+      setInstalledApps([]);
     } catch (err) {
       console.error('Failed to fetch installed apps:', err);
       setError('Failed to fetch installed apps. Make sure ADB is connected.');
@@ -113,14 +114,21 @@ export default function HomePage() {
   const fetchIosSimulators = async () => {
     setLoadingIos(true);
     try {
-      const devices = await invoke<IosDevice[]>('ios_list_devices');
-      setIosSimulators(devices);
+      const devices = await mobileApi.listIosDevices();
+      // Map to IosDevice format
+      const iosDevices: IosDevice[] = devices.map(d => ({
+        udid: d.id,
+        name: d.name,
+        state: d.status === 'booted' ? 'Booted' : d.status,
+        runtime: 'iOS',
+      }));
+      setIosSimulators(iosDevices);
       // Auto-select the first booted device
-      const bootedDevice = devices.find(d => d.state === 'Booted');
+      const bootedDevice = iosDevices.find(d => d.state === 'Booted');
       if (bootedDevice) {
         setSelectedIosDevice(bootedDevice.udid);
-      } else if (devices.length > 0) {
-        setSelectedIosDevice(devices[0].udid);
+      } else if (iosDevices.length > 0) {
+        setSelectedIosDevice(iosDevices[0].udid);
       }
     } catch (err) {
       console.error('Failed to fetch iOS simulators:', err);
@@ -133,8 +141,8 @@ export default function HomePage() {
   const fetchIosApps = async (deviceId?: string) => {
     setLoadingIos(true);
     try {
-      const apps = await invoke<string[]>('ios_list_apps', { deviceId: deviceId || selectedIosDevice || undefined });
-      setIosApps(apps);
+      // iOS apps list not yet implemented - would need additional API
+      setIosApps([]);
     } catch (err) {
       console.error('Failed to fetch iOS apps:', err);
       // Don't show error for apps - it's optional
@@ -190,7 +198,9 @@ export default function HomePage() {
     }
   };
 
-  const handleConnectUrl = () => {
+  const [isConnecting, setIsConnecting] = useState(false);
+
+  const handleConnectUrl = async () => {
     if (!appUrl.trim()) {
       setError('Please enter the app URL');
       return;
@@ -202,30 +212,36 @@ export default function HomePage() {
       return;
     }
 
-    // Generate project name from URL if not provided
-    const name = projectName.trim() || (() => {
-      try {
-        const url = new URL(appUrl);
-        return url.hostname.replace(/[^a-zA-Z0-9]/g, '-') || 'my-app';
-      } catch {
-        return 'my-app';
-      }
-    })();
+    setIsConnecting(true);
+    setError('');
 
-    // Set project in context
-    const project: Project = {
-      id: name.toLowerCase().replace(/\s+/g, '-'),
-      name,
-      appUrl,
-      source: 'url',
-      connectedAt: new Date().toISOString(),
-    };
+    try {
+      // Call backend API to validate URL and create project
+      const response = await projectApi.connect({
+        app_url: appUrl,
+        name: projectName.trim() || undefined,
+        project_type: 'web',
+      });
 
-    setCurrentProject(project);
-    setModalOpen(false);
+      // Set project in context
+      const project: Project = {
+        id: response.project.id,
+        name: response.project.name,
+        appUrl: response.project.app_url,
+        source: 'url',
+        connectedAt: new Date().toISOString(),
+      };
 
-    // Navigate to test cases
-    router.push('/test-cases');
+      setCurrentProject(project);
+      setModalOpen(false);
+
+      // Navigate to test cases
+      router.push('/test-cases');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to connect to app. Is it running?');
+    } finally {
+      setIsConnecting(false);
+    }
   };
 
   const handleCloneRepository = async () => {
@@ -513,9 +529,18 @@ export default function HomePage() {
             <Button variant="secondary" onClick={() => setModalOpen(false)} className="flex-1">
               Cancel
             </Button>
-            <Button variant="primary" onClick={handleConnectUrl} className="flex-1">
-              <FontAwesomeIcon icon={faRocket} className="mr-2" />
-              Start Testing
+            <Button variant="primary" onClick={handleConnectUrl} className="flex-1" disabled={isConnecting}>
+              {isConnecting ? (
+                <>
+                  <Spinner size="sm" className="mr-2" />
+                  Connecting...
+                </>
+              ) : (
+                <>
+                  <FontAwesomeIcon icon={faRocket} className="mr-2" />
+                  Start Testing
+                </>
+              )}
             </Button>
           </div>
         </div>

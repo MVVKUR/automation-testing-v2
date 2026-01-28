@@ -1,13 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Only use static export for production builds (Tauri)
+  // Use static export for production builds (Electron)
   // Dev mode uses the Next.js dev server
   ...(process.env.NODE_ENV === 'production' ? { output: 'export' } : {}),
   reactStrictMode: true,
   images: {
     unoptimized: true,
   },
-  // Tauri doesn't support trailing slashes in static export
+  // Electron handles routing, no trailing slashes needed
   trailingSlash: false,
 };
 
