@@ -1,0 +1,25 @@
+# Jekyll configuration for GitHub Pages
+title: AutoTest AI
+description: AI-powered test automation desktop application
+baseurl: "/automation-testing-v2"
+url: "https://mvvkur.github.io"
+
+# Theme - using Cayman (clean, modern look)
+remote_theme: pages-themes/cayman@v0.2.0
+plugins:
+  - jekyll-remote-theme
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+
+# Exclude from build
+exclude:
+  - CODE_SIGNING.md
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor
+
+# Show excerpts on the homepage
+show_excerpts: false

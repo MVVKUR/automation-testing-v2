@@ -1,0 +1,154 @@
+---
+---
+
+@import "{{ site.theme }}";
+
+/* Custom styles for AutoTest AI landing page */
+
+/* Hero section enhancements */
+.page-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 4rem 2rem;
+}
+
+.project-name {
+  font-size: 3rem;
+  font-weight: 700;
+}
+
+.project-tagline {
+  font-size: 1.3rem;
+  opacity: 0.9;
+}
+
+/* Button styles */
+.btn {
+  display: inline-block;
+  margin: 0.5rem 0.5rem 0.5rem 0;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background-color: #fff;
+  color: #667eea;
+}
+
+.btn-primary:hover {
+  background-color: #f0f0f0;
+  transform: translateY(-2px);
+}
+
+.btn:not(.btn-primary) {
+  border: 2px solid #fff;
+  color: #fff;
+  background: transparent;
+}
+
+.btn:not(.btn-primary):hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Main content */
+.main-content {
+  max-width: 900px;
+  padding: 3rem 2rem;
+}
+
+/* Feature sections */
+.main-content h2 {
+  color: #667eea;
+  border-bottom: 2px solid #667eea;
+  padding-bottom: 0.5rem;
+  margin-top: 3rem;
+}
+
+.main-content h3 {
+  color: #333;
+  margin-top: 1.5rem;
+}
+
+/* Code blocks */
+.main-content pre {
+  background-color: #1e1e1e;
+  border-radius: 8px;
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+.main-content code {
+  background-color: #f4f4f4;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+.main-content pre code {
+  background-color: transparent;
+  padding: 0;
+}
+
+/* Tables */
+.main-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+}
+
+.main-content table th {
+  background-color: #667eea;
+  color: #fff;
+  padding: 0.75rem;
+  text-align: left;
+}
+
+.main-content table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.main-content table tr:hover {
+  background-color: #f9f9f9;
+}
+
+/* Architecture diagram */
+.main-content pre:has(code) {
+  background-color: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  color: #333;
+}
+
+/* Links */
+.main-content a {
+  color: #667eea;
+  text-decoration: none;
+}
+
+.main-content a:hover {
+  text-decoration: underline;
+}
+
+/* Horizontal rules */
+.main-content hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(to right, transparent, #e0e0e0, transparent);
+  margin: 3rem 0;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+  .project-name {
+    font-size: 2rem;
+  }
+
+  .btn {
+    display: block;
+    text-align: center;
+    margin: 0.5rem 0;
+  }
+}
