@@ -19,6 +19,8 @@ Generate, manage, and execute test cases with the power of AI. Built as a cross-
 ### Dashboard
 The main dashboard provides quick access to all testing options:
 
+![Dashboard](assets/images/dashboard.png)
+
 | Option | Description |
 |--------|-------------|
 | **Connect URL** | Test a running web app by entering its URL |
@@ -31,6 +33,8 @@ The main dashboard provides quick access to all testing options:
 ### Settings
 Configure your testing environment:
 
+![Settings](assets/images/settings.png)
+
 - **Test Runner** - Set test runner URL and default browser (Chrome, Firefox, etc.)
 - **Headless Mode** - Run tests without visible browser
 - **AI Configuration** - Select AI provider (Anthropic Claude) and enable self-healing selectors
@@ -38,6 +42,9 @@ Configure your testing environment:
 
 ### Connect to Running App
 The connection dialog allows you to:
+
+![Connect Dialog](assets/images/connect-dialog.png)
+
 1. Enter your application's URL
 2. Optionally name your project
 3. Choose between standard testing or MCP-powered testing (Beta)
