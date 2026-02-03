@@ -14,7 +14,49 @@ Generate, manage, and execute test cases with the power of AI. Built as a cross-
 
 ---
 
+## User Interface
+
+### Dashboard
+The main dashboard provides quick access to all testing options:
+
+| Option | Description |
+|--------|-------------|
+| **Connect URL** | Test a running web app by entering its URL |
+| **GitHub** | Clone & test repository from GitHub |
+| **GitLab** | Clone & test repository from GitLab |
+| **Upload ZIP** | Drag & drop project archive |
+| **Android** | Test APK on emulator or device |
+| **iOS** | Test on simulator or device |
+
+### Settings
+Configure your testing environment:
+
+- **Test Runner** - Set test runner URL and default browser (Chrome, Firefox, etc.)
+- **Headless Mode** - Run tests without visible browser
+- **AI Configuration** - Select AI provider (Anthropic Claude) and enable self-healing selectors
+- **Appearance** - Light/Dark theme toggle
+
+### Connect to Running App
+The connection dialog allows you to:
+1. Enter your application's URL
+2. Optionally name your project
+3. Choose between standard testing or MCP-powered testing (Beta)
+
+---
+
 ## Features
+
+### Web Testing
+Test web applications directly in the browser with multiple connection options:
+- **Connect URL** - Test a running web app by entering its URL
+- **GitHub Integration** - Clone and test repositories directly
+- **GitLab Integration** - Clone and test GitLab repositories
+- **Upload ZIP** - Drag and drop project archives
+
+### Mobile Testing
+Test native Android and iOS applications:
+- **Android** - Test APK on emulator or physical device via ADB
+- **iOS** - Test on simulator or device
 
 ### AI-Powered Test Generation
 Automatically generate comprehensive test cases using Claude AI. Simply describe your requirements or point to your code, and let AI do the heavy lifting.
@@ -28,11 +70,11 @@ Execute tests with your preferred framework - supports both **Cypress** and **Pl
 ### Cross-Platform
 Runs natively on **macOS**, **Windows**, and **Linux**. One codebase, all platforms.
 
-### GitHub & Jira Integration
-Sync issues and test cases directly with GitHub and Jira. Keep your tests connected to your project management workflow.
+### Self-Healing Selectors
+AI-powered selector healing automatically fixes broken element selectors when the UI changes.
 
-### Real-Time Execution
-Watch your tests run with live progress updates. Get instant feedback on test results and failures.
+### MCP Integration (Beta)
+Model Context Protocol support for advanced AI-browser interactions and testing automation.
 
 ---
 
